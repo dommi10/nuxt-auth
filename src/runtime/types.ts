@@ -1,6 +1,6 @@
-import type { Ref, ComputedRef } from 'vue'
-import { RouterMethod } from 'h3'
-import { SupportedProviders } from './composables/authjs/useAuth'
+import type { Ref, ComputedRef } from "vue";
+import type { RouterMethod } from "h3";
+import type { SupportedProviders } from "./composables/authjs/useAuth";
 
 /**
  * Configuration for the global application-side authentication-middleware.
@@ -37,13 +37,13 @@ interface GlobalMiddlewareOptions {
 }
 
 type DataObjectPrimitives =
-  | 'string'
-  | 'number'
-  | 'boolean'
-  | 'any'
-  | 'undefined'
-  | 'function'
-  | 'null';
+  | "string"
+  | "number"
+  | "boolean"
+  | "any"
+  | "undefined"
+  | "function"
+  | "null";
 
 type DataObjectArray = `${string}[]`;
 
@@ -56,12 +56,12 @@ export type SessionDataObject = {
 /**
  * Available `nuxt-auth` authentication providers.
  */
-export type SupportedAuthProviders = 'authjs' | 'local' | 'refresh';
+export type SupportedAuthProviders = "authjs" | "local" | "refresh";
 
 /**
  * Configuration for the `local`-provider.
  */
-type ProviderLocal = {
+export type ProviderLocal = {
   /**
    * Uses the `local` provider to facilitate authentication. Currently, two providers exclusive are supported:
    * - `authjs`: `next-auth` / `auth.js` based OAuth, Magic URL, Credential provider for non-static applications
@@ -69,7 +69,7 @@ type ProviderLocal = {
    *
    * Read more here: https://sidebase.io/nuxt-auth/v0.6/getting-started
    */
-  type: Extract<SupportedAuthProviders, 'local'>;
+  type: Extract<SupportedAuthProviders, "local">;
   /**
    * Endpoints to use for the different methods. `nuxt-auth` will use this and the root-level `baseURL` to create the final request. E.g.:
    * - `baseURL=/api/auth`, `path=/login` will result in a request to `/api/auth/login`
@@ -139,6 +139,13 @@ type ProviderLocal = {
      */
     type?: string;
     /**
+     * It refers to the name of the property when it is stored in a cookie.
+     *
+     * @default auth.token
+     * @example auth._token
+     */
+    cookieName?: string;
+    /**
      * Header name to be used in requests that need to be authenticated, e.g., to be used in the `getSession` request.
      *
      * @default Authorization
@@ -159,7 +166,7 @@ type ProviderLocal = {
      * @default 'lax'
      * @example 'strict'
      */
-    sameSiteAttribute?: boolean | 'lax' | 'strict' | 'none' | undefined;
+    sameSiteAttribute?: boolean | "lax" | "strict" | "none" | undefined;
   };
   /**
    * Define an interface for the session data object that `nuxt-auth` expects to receive from the `getSession` endpoint.
@@ -174,7 +181,7 @@ type ProviderLocal = {
 /**
  * Configuration for the `refresh`-provider an extended version of the local provider.
  */
-type ProviderLocalRefresh = Omit<ProviderLocal, 'type'> & {
+export type ProviderLocalRefresh = Omit<ProviderLocal, "type"> & {
   /**
    * Uses the `authjs` provider to facilitate authentication. Currently, two providers exclusive are supported:
    * - `authjs`: `next-auth` / `auth.js` based OAuth, Magic URL, Credential provider for non-static applications
@@ -182,7 +189,7 @@ type ProviderLocalRefresh = Omit<ProviderLocal, 'type'> & {
    *
    * Read more here: https://sidebase.io/nuxt-auth/v0.6/getting-started
    */
-  type: Extract<SupportedAuthProviders, 'refresh'>;
+  type: Extract<SupportedAuthProviders, "refresh">;
   endpoints?: {
     /**
      * What method and path to call to perform the sign-in. This endpoint must return a token that can be used to authenticate subsequent requests.
@@ -194,8 +201,9 @@ type ProviderLocalRefresh = Omit<ProviderLocal, 'type'> & {
   /**
    *  When refreshOnlyToken is set, only the token will be refreshed
    *
+   * @default true
    */
-  refreshOnlyToken?: true;
+  refreshOnlyToken?: boolean;
 
   refreshToken?: {
     /**
@@ -204,12 +212,33 @@ type ProviderLocalRefresh = Omit<ProviderLocal, 'type'> & {
      * E.g., setting this to `/refreshToken/bearer` and returning an object like `{ refreshToken: { bearer: 'THE_AUTH_TOKEN' }, timestamp: '2023' }` from the `signIn` endpoint will
      * result in `nuxt-auth` extracting and storing `THE_AUTH_TOKEN`.
      *
-     * This follows the JSON Pointer standard, see it's RFC6901 here: https://www.rfc-editor.org/rfc/rfc6901
+     * This follows the JSON Pointer standard, see its RFC6901 here: https://www.rfc-editor.org/rfc/rfc6901
      *
-     * @default /refreshToken  Access the `refreshToken` property of the sign-in response object
+     * @default '/refreshToken'  Access the `refreshToken` property of the sign-in response object
      * @example /       Access the root of the sign-in response object, useful when your endpoint returns a plain, non-object string as the token
      */
     signInResponseRefreshTokenPointer?: string;
+    /**
+     * How to do a fetch for the refresh token.
+     *
+     * This is especially useful when you have an external backend signing tokens. Refer to this issue to get more information: https://github.com/sidebase/nuxt-auth/issues/635.
+     *
+     * ### Example
+     * Setting this to `/refresh/token` would make Nuxt Auth send the `POST /api/auth/refresh` with the following BODY: `{ "refresh": { "token": "..." } }
+     *
+     * ### Notes
+     * This follows the JSON Pointer standard, see its RFC6901 here: https://www.rfc-editor.org/rfc/rfc6901
+     *
+     * @default '/refreshToken'
+     */
+    refreshRequestTokenPointer?: string;
+    /**
+     * It refers to the name of the property when it is stored in a cookie.
+     *
+     * @default auth.refresh-token
+     * @example auth._refresh-token
+     */
+    cookieName?: string;
     /**
      * Maximum age to store the authentication token for. After the expiry time the token is automatically deleted on the application side, i.e., in the users' browser.
      *
@@ -230,7 +259,7 @@ export type ProviderAuthjs = {
    *
    * Read more here: https://sidebase.io/nuxt-auth/v0.6/getting-started
    */
-  type: Extract<SupportedAuthProviders, 'authjs'>;
+  type: Extract<SupportedAuthProviders, "authjs">;
   /**
    * If set to `true`, `authjs` will use either the `x-forwarded-host` or `host` headers instead of `auth.baseURL`.
    *
@@ -355,7 +384,7 @@ export interface ModuleOptions {
 // Common useAuthStatus & useAuth return-types
 
 export type SessionLastRefreshedAt = Date | undefined;
-export type SessionStatus = 'authenticated' | 'unauthenticated' | 'loading';
+export type SessionStatus = "authenticated" | "unauthenticated" | "loading";
 type WrappedSessionData<SessionData> = Ref<SessionData | null | undefined>;
 export interface CommonUseAuthReturn<SignIn, SignOut, GetSession, SessionData> {
   data: Readonly<WrappedSessionData<SessionData>>;
@@ -397,6 +426,14 @@ export interface SecondarySignInOptions extends Record<string, unknown> {
   external?: boolean;
 }
 
+export interface SignUpOptions extends SecondarySignInOptions {
+  /** Prevent the signIn flow during registration
+   *
+   * @default false
+   */
+  preventLoginFlow?: boolean;
+}
+
 export interface SignOutOptions {
   callbackUrl?: string;
   redirect?: boolean;
@@ -425,3 +462,24 @@ export type SignInFunc<PrimarySignInOptions, SignInResult> = (
   signInOptions?: SecondarySignInOptions,
   paramsOptions?: Record<string, string>
 ) => Promise<SignInResult>;
+
+export interface ModuleOptionsNormalized extends ModuleOptions {
+  isEnabled: boolean;
+  // Cannot use `DeepRequired` here because it leads to build issues
+  provider: Required<NonNullable<ModuleOptions["provider"]>>;
+  session: NonNullable<ModuleOptions["session"]>;
+  globalAppMiddleware: NonNullable<ModuleOptions["globalAppMiddleware"]>;
+
+  computed: {
+    origin: string | undefined;
+    pathname: string;
+    fullBaseUrl: string;
+  };
+}
+
+// Augment types
+declare module "nuxt/schema" {
+  interface PublicRuntimeConfig {
+    auth: ModuleOptionsNormalized;
+  }
+}
