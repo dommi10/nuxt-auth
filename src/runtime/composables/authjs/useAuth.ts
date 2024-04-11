@@ -2,8 +2,6 @@ import type { AppProvider, BuiltInProviderType } from 'next-auth/providers/index
 import { defu } from 'defu'
 import { readonly, type Ref } from 'vue'
 import { appendHeader } from 'h3'
-import { callWithNuxt } from '#app/nuxt'
-import type { NuxtApp } from '#app/nuxt'
 import { determineCallbackUrl } from '../../utils/url'
 import { makeCWN, joinPathToApiURLWN, navigateToAuthPageWN, getRequestURLWN } from '../../utils/callWithNuxt'
 import { _fetch } from '../../utils/fetch'
@@ -11,6 +9,8 @@ import { isNonEmptyObject } from '../../utils/checkSessionResult'
 import type { CommonUseAuthReturn, SignOutFunc, GetSessionFunc, SignInFunc } from '../../types'
 import { useTypedBackendConfig } from '../../helpers'
 import type { SessionData } from './useAuthState'
+import type { NuxtApp } from '#app/nuxt'
+import { callWithNuxt } from '#app/nuxt'
 import { createError, useNuxtApp, useRuntimeConfig, useRequestHeaders, useAuthState } from '#imports'
 
 /**

@@ -1,3 +1,3 @@
-import { eventHandler } from "h3";
+import { eventHandler } from 'h3'
 
-export default eventHandler(() => ({ status: "OK" }));
+export default eventHandler(() => ({ status: 'OK' }))

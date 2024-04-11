@@ -1,11 +1,15 @@
 import type { Ref } from 'vue'
-import { callWithNuxt } from '#app'
-import { jsonPointerGet, objectFromJsonPointer, useTypedBackendConfig } from '../../helpers'
+import {
+  jsonPointerGet,
+  objectFromJsonPointer,
+  useTypedBackendConfig
+} from '../../helpers'
 import { useAuth as useLocalAuth } from '../local/useAuth'
 import { _fetch } from '../../utils/fetch'
 import { getRequestURLWN } from '../../utils/callWithNuxt'
 import type { SignOutFunc } from '../../types'
 import { useAuthState } from './useAuthState'
+import { callWithNuxt } from '#app'
 import {
   navigateTo,
   nextTick,
@@ -79,7 +83,8 @@ const refresh = async () => {
   const nuxt = useNuxtApp()
   const config = useTypedBackendConfig(useRuntimeConfig(), 'refresh')
   const { path, method } = config.endpoints.refresh
-  const refreshRequestTokenPointer = config.refreshToken.refreshRequestTokenPointer
+  const refreshRequestTokenPointer =
+    config.refreshToken.refreshRequestTokenPointer
 
   const { getSession } = useLocalAuth()
   const { refreshToken, token, rawToken, rawRefreshToken, lastRefreshedAt } =
@@ -89,48 +94,55 @@ const refresh = async () => {
     [config.token.headerName]: token.value
   } as HeadersInit)
 
-  const response = await _fetch<Record<string, any>>(nuxt, path, {
-    method,
-    headers,
-    body: objectFromJsonPointer(refreshRequestTokenPointer, refreshToken.value)
-  })
+  try {
+    const response = await _fetch<Record<string, any>>(nuxt, path, {
+      method,
+      headers,
+      body: objectFromJsonPointer(
+        refreshRequestTokenPointer,
+        refreshToken.value
+      )
+    })
 
-  const extractedToken = jsonPointerGet(
-    response,
-    config.token.signInResponseTokenPointer
-  )
-  if (typeof extractedToken !== 'string') {
-    console.error(
-      `Auth: string token expected, received instead: ${JSON.stringify(
-        extractedToken
-      )}. Tried to find token at ${
-        config.token.signInResponseTokenPointer
-      } in ${JSON.stringify(response)}`
-    )
-    return
-  }
-
-  if (!config.refreshOnlyToken) {
-    const extractedRefreshToken = jsonPointerGet(
+    const extractedToken = jsonPointerGet(
       response,
-      config.refreshToken.signInResponseRefreshTokenPointer
+      config.token.signInResponseTokenPointer
     )
-    if (typeof extractedRefreshToken !== 'string') {
+    if (typeof extractedToken !== 'string') {
       console.error(
         `Auth: string token expected, received instead: ${JSON.stringify(
-          extractedRefreshToken
+          extractedToken
         )}. Tried to find token at ${
-          config.refreshToken.signInResponseRefreshTokenPointer
+          config.token.signInResponseTokenPointer
         } in ${JSON.stringify(response)}`
       )
       return
-    } else {
-      rawRefreshToken.value = extractedRefreshToken
     }
-  }
 
-  rawToken.value = extractedToken
-  lastRefreshedAt.value = new Date()
+    if (!config.refreshOnlyToken) {
+      const extractedRefreshToken = jsonPointerGet(
+        response,
+        config.refreshToken.signInResponseRefreshTokenPointer
+      )
+      if (typeof extractedRefreshToken !== 'string') {
+        console.error(
+          `Auth: string token expected, received instead: ${JSON.stringify(
+            extractedRefreshToken
+          )}. Tried to find token at ${
+            config.refreshToken.signInResponseRefreshTokenPointer
+          } in ${JSON.stringify(response)}`
+        )
+        return
+      } else {
+        rawRefreshToken.value = extractedRefreshToken
+      }
+    }
+
+    rawToken.value = extractedToken
+    lastRefreshedAt.value = new Date()
+  } catch {
+    await nextTick(getSession)
+  }
 
   await nextTick(getSession)
 }

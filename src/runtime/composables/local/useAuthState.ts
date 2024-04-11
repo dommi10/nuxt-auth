@@ -1,8 +1,8 @@
 import { computed, watch, type ComputedRef } from 'vue'
-import type { CookieRef } from '#app'
 import { type CommonUseAuthStateReturn } from '../../types'
 import { makeCommonAuthState } from '../commonAuthState'
 import { useTypedBackendConfig } from '../../helpers'
+import type { CookieRef } from '#app'
 import { useRuntimeConfig, useCookie, useState } from '#imports'
 // @ts-expect-error - #auth not defined
 import type { SessionData } from '#auth'
